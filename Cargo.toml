@@ -1,0 +1,11 @@
+[workspace]
+members = ["app"]
+
+[package]
+name = "cith"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cityhash = "0.1.1"
+cityhasher = "0.1.0"

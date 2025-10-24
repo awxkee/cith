@@ -1,0 +1,15 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cith = { path = ".." }
+
+[dev-dependencies]
+criterion = "0.7.0"
+rand = "0.9"
+
+[[bench]]
+name = "hash"
+harness = false
