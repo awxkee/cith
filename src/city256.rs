@@ -154,7 +154,7 @@ fn city256_long_arm_crc(bytes: &[u8], seed: u32) -> Hash256 {
 }
 
 #[allow(unused_assignments)]
-#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+#[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "sse4.2")]
 fn city256_long_sse42_crc(bytes: &[u8], seed: u32) -> Hash256 {
     debug_assert!(bytes.len() >= 240);
@@ -180,9 +180,6 @@ fn city256_long_sse42_crc(bytes: &[u8], seed: u32) -> Hash256 {
     len -= iters * 240;
     #[allow(unused)]
     let mut moved_offset = 0usize;
-    #[cfg(target_arch = "x86")]
-    use std::arch::x86::_mm_crc32_u64;
-    #[cfg(target_arch = "x86_64")]
     use std::arch::x86_64::_mm_crc32_u64;
     macro_rules! chunk {
         ($r:expr) => {{
@@ -395,7 +392,7 @@ pub(crate) fn city256_long_crc_target(bytes: &[u8], seed: u32) -> Hash256 {
     static EXECUTOR: OnceLock<HashFn> = OnceLock::new();
 
     let func = EXECUTOR.get_or_init(|| {
-        #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+        #[cfg(target_arch = "x86_64")]
         {
             if std::arch::is_x86_feature_detected!("sse4.2") {
                 return city256_long_sse42_crc;
