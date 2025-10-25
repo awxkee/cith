@@ -26,11 +26,7 @@
  * // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-use crate::generic32::read_le32;
-
-pub fn city_hash64(bytes: &[u8]) -> u64 {
-    city_hash64_impl(bytes)
-}
+use crate::city32::read_le32;
 
 #[inline]
 pub(crate) fn read_le64(bytes: &[u8], from_start: usize) -> u64 {
@@ -39,18 +35,18 @@ pub(crate) fn read_le64(bytes: &[u8], from_start: usize) -> u64 {
 }
 
 // Some primes between 2^63 and 2^64 for various uses.
-const K0: u64 = 0xc3a5c85c97cb3127;
-const K1: u64 = 0xb492b66fbe98f273;
-const K2: u64 = 0x9ae16a3b2f90404f;
+pub(crate) const K0: u64 = 0xc3a5c85c97cb3127;
+pub(crate) const K1: u64 = 0xb492b66fbe98f273;
+pub(crate) const K2: u64 = 0x9ae16a3b2f90404f;
 
 #[inline]
-fn hash_len_16_u64(u: u64, v: u64) -> u64 {
+pub(crate) fn hash_len_16_u64(u: u64, v: u64) -> u64 {
     const MUL: u64 = 0x9ddfea08eb382d69;
     hash_len_16_with_mul(u, v, MUL)
 }
 
 #[inline]
-fn hash_len_16_with_mul(u: u64, v: u64, mul: u64) -> u64 {
+pub(crate) fn hash_len_16_with_mul(u: u64, v: u64, mul: u64) -> u64 {
     // Murmur-inspired hashing.
     let mut a = (u ^ v).wrapping_mul(mul);
     a ^= a >> 47;
@@ -60,11 +56,12 @@ fn hash_len_16_with_mul(u: u64, v: u64, mul: u64) -> u64 {
 }
 
 #[inline]
-fn shift_mix(val: u64) -> u64 {
+pub(crate) fn shift_mix(val: u64) -> u64 {
     val ^ (val >> 47)
 }
 
-fn hash64_len_0_to_16(bytes: &[u8]) -> u64 {
+#[inline]
+pub(crate) fn hash64_len_0_to_16(bytes: &[u8]) -> u64 {
     if bytes.len() >= 8 {
         let mul = K2.wrapping_add((bytes.len() as u64).wrapping_mul(2));
         let a = read_le64(bytes, 0).wrapping_add(K2);
@@ -92,7 +89,8 @@ fn hash64_len_0_to_16(bytes: &[u8]) -> u64 {
     }
 }
 
-fn hash64_len_17_to_32(bytes: &[u8]) -> u64 {
+#[inline]
+pub(crate) fn hash64_len_17_to_32(bytes: &[u8]) -> u64 {
     let mul = K2.wrapping_add(bytes.len() as u64 * 2);
     let a = read_le64(bytes, 0).wrapping_mul(K1);
     let b = read_le64(bytes, 8);
@@ -121,7 +119,12 @@ fn weak_hash_len_32_with_seeds_impl(w: u64, x: u64, y: u64, z: u64, a: u64, b: u
 }
 
 #[inline]
-fn weak_hash_len_32_with_seeds(bytes: &[u8], offset: usize, a: u64, b: u64) -> (u64, u64) {
+pub(crate) fn weak_hash_len_32_with_seeds(
+    bytes: &[u8],
+    offset: usize,
+    a: u64,
+    b: u64,
+) -> (u64, u64) {
     weak_hash_len_32_with_seeds_impl(
         read_le64(bytes, offset),
         read_le64(bytes, offset + 8),
@@ -132,7 +135,8 @@ fn weak_hash_len_32_with_seeds(bytes: &[u8], offset: usize, a: u64, b: u64) -> (
     )
 }
 
-fn hash64_len_33_to_64(bytes: &[u8]) -> u64 {
+#[inline]
+pub(crate) fn hash64_len_33_to_64(bytes: &[u8]) -> u64 {
     let mul = K2.wrapping_add(bytes.len() as u64 * 2);
     let a = read_le64(bytes, 0).wrapping_mul(K2);
     let b = read_le64(bytes, 8);
@@ -176,7 +180,44 @@ fn hash64_len_33_to_64(bytes: &[u8]) -> u64 {
     b.wrapping_add(x)
 }
 
-fn city_hash64_impl(bytes: &[u8]) -> u64 {
+#[inline]
+fn city_hash64_with_seeds(bytes: &[u8], seed0: u64, seed1: u64) -> u64 {
+    hash_len_16_u64(city_hash64(bytes).wrapping_sub(seed0), seed1)
+}
+
+/// Computes a 64-bit CityHash value for the given byte slice, using the specified seed.
+///
+/// This function implements the **CityHash64** algorithm with an additional 64-bit seed.
+/// CityHash64 is a fast, non-cryptographic hash function optimized for speed and good
+/// bit mixing on short and medium-length inputs.
+///
+/// Providing a custom seed allows for hash diversification, which can help reduce
+/// collision risks when multiple hash tables or hashing contexts share similar data patterns.
+///
+/// # Parameters
+/// - `bytes`: The input data to hash.
+/// - `seed`: A 64-bit seed value used to randomize the hash output.
+///
+/// # Returns
+/// A 64-bit hash value computed from `bytes` and `seed`.
+pub fn city_hash64_with_seed(bytes: &[u8], seed: u64) -> u64 {
+    city_hash64_with_seeds(bytes, K0, seed)
+}
+
+/// Computes the 64-bit CityHash of a byte slice.
+///
+/// CityHash64 is a non-cryptographic hash function optimized for
+/// fast hashing of strings and byte arrays. It produces a 64-bit hash
+/// value suitable for hash tables, fingerprinting, and checksums.
+///
+/// # Arguments
+///
+/// * `bytes` - A slice of bytes to hash.
+///
+/// # Returns
+///
+/// A `u64` value representing the hash of the input slice.
+pub fn city_hash64(bytes: &[u8]) -> u64 {
     let len = bytes.len();
     if len <= 32 {
         if len <= 16 {
@@ -241,16 +282,14 @@ mod tests {
     fn test_empty() {
         let data: &[u8] = &[];
         let hash = city_hash64(data);
-        let hs: u64 = cityhasher::hash(data);
-        assert_eq!(hash, hs);
+        assert_eq!(hash, 11160318154034397263);
     }
 
     #[test]
     fn test_dog() {
         let data2 = b"The quick brown fox jumps over the lazy dog";
         let hash2 = city_hash64(data2);
-        let hs: u64 = cityhasher::hash(data2);
-        assert_eq!(hash2, hs);
+        assert_eq!(hash2, 14008572299481893501);
     }
 
     #[test]

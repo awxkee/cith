@@ -27,10 +27,19 @@
  * // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-mod generic32;
-mod generic64;
+mod city128;
+mod city256;
+mod city32;
+mod city64;
+mod crc;
 mod hasher;
+mod murmur;
 
-pub use generic32::city_hash32;
-pub use generic64::city_hash64;
+pub use city32::city_hash32;
+pub use city64::{city_hash64, city_hash64_with_seed};
+pub use city128::{
+    city_hash128, city_hash128_crc, city_hash128_crc_with_seed, city_hash128_with_seed,
+};
+pub use city256::{Hash256, city_hash256_crc, city_hash256_crc_with_seed};
 pub use hasher::{City32Hasher, City64Hasher};
+pub use murmur::{city_murmur, city_murmur_with_seed};

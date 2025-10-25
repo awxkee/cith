@@ -4,8 +4,8 @@
  * // Use of this source code is governed by a BSD-style
  * // license that can be found in the LICENSE file.
  */
-use cith::{city_hash32, city_hash64};
-use criterion::{Criterion, criterion_group, criterion_main};
+use cith::{city_hash128, city_hash256_crc, city_hash32, city_hash64, city_murmur};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.benchmark_group("Hash");
@@ -28,6 +28,9 @@ The person who originally found the flaw[clarification needed] in MurmurHash2 cr
 MurmurHash3
 The current version, completed April 3, 2011, is MurmurHash3,[12][13] which yields a 32-bit or 128-bit hash value. When using 128-bits, the x86 and x64 versions do not produce the same values, as the algorithms are optimized for their respective platforms. MurmurHash3 was released alongside SMHasher, a hash function test suite.".to_string();
 
+    let very_short_key = "MurmurHash2MurmurHash2";
+    let v_short = very_short_key.as_bytes().to_vec();
+
     let v = bench_test.as_bytes().to_vec();
 
     c.bench_function("city32", |b| {
@@ -36,9 +39,40 @@ The current version, completed April 3, 2011, is MurmurHash3,[12][13] which yiel
         })
     });
 
+    c.bench_function("city32_small", |b| {
+        b.iter(|| {
+            _ = city_hash32(&v_short);
+        })
+    });
+
+
     c.bench_function("city64", |b| {
         b.iter(|| {
             _ = city_hash64(&v);
+        })
+    });
+
+    c.bench_function("city64_small", |b| {
+        b.iter(|| {
+            _ = city_hash64(&v_short);
+        })
+    });
+
+    c.bench_function("city_murmur", |b| {
+        b.iter(|| {
+            _ = city_murmur(&v);
+        })
+    });
+
+    c.bench_function("city_hash128", |b| {
+        b.iter(|| {
+            _ = city_hash128(&v);
+        })
+    });
+
+    c.bench_function("city_hash256", |b| {
+        b.iter(|| {
+            _ = city_hash256_crc(&v);
         })
     });
 }

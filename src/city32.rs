@@ -27,10 +27,6 @@
  * // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-pub fn city_hash32(bytes: &[u8]) -> u32 {
-    city_hash32_impl(bytes)
-}
-
 const C1: u32 = 0xcc9e2d51;
 const C2: u32 = 0x1b873593;
 
@@ -105,12 +101,25 @@ fn hash32_len13to24(bytes: &[u8]) -> u32 {
 }
 
 #[inline]
-fn permute3<T>(a: &mut T, b: &mut T, c: &mut T) {
+pub(crate) fn permute3<T>(a: &mut T, b: &mut T, c: &mut T) {
     std::mem::swap(a, b);
     std::mem::swap(a, c);
 }
 
-fn city_hash32_impl(bytes: &[u8]) -> u32 {
+/// Computes the 32-bit CityHash of a byte slice.
+///
+/// CityHash32 is a non-cryptographic hash function designed for fast
+/// hashing of strings and byte arrays. It produces a 32-bit hash value
+/// suitable for hash tables or fingerprinting.
+///
+/// # Arguments
+///
+/// * `bytes` - A slice of bytes to hash.
+///
+/// # Returns
+///
+/// A `u32` value representing the hash of the input slice.
+pub fn city_hash32(bytes: &[u8]) -> u32 {
     if bytes.len() <= 24 {
         let len = bytes.len() as u32;
         if len <= 12 {
@@ -213,20 +222,19 @@ fn city_hash32_impl(bytes: &[u8]) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use super::city_hash32_impl;
+    use super::city_hash32;
 
     #[test]
     fn test_empty() {
         let data: &[u8] = &[];
-        let hash = city_hash32_impl(data);
-        let hs: u32 = cityhasher::hash(data);
-        assert_eq!(hash, hs);
+        let hash = city_hash32(data);
+        assert_eq!(hash, 3696677242);
     }
 
     #[test]
     fn test_dog() {
         let data2 = b"The quick brown fox jumps over the lazy dog";
-        let hash2 = city_hash32_impl(data2);
+        let hash2 = city_hash32(data2);
         assert_eq!(hash2, 0xa339c810);
     }
 
@@ -239,7 +247,7 @@ mod tests {
         ];
         let expected = [0xa2e9e6d4u32, 0x6466c086u32, 0x4f6ef482u32];
         for (input, &expected) in data.iter().zip(expected.iter()) {
-            let hash = city_hash32_impl(input);
+            let hash = city_hash32(input);
             assert_eq!(hash, expected);
         }
     }
@@ -248,16 +256,16 @@ mod tests {
     fn test_different_lengths() {
         let short = b"a";
         let long = b"aaaaaaaaaa";
-        let hash_short = city_hash32_impl(short);
-        let hash_long = city_hash32_impl(long);
+        let hash_short = city_hash32(short);
+        let hash_long = city_hash32(long);
         assert_ne!(hash_short, hash_long);
     }
 
     #[test]
     fn test_consistency() {
         let data = b"repeatable";
-        let hash1 = city_hash32_impl(data);
-        let hash2 = city_hash32_impl(data);
+        let hash1 = city_hash32(data);
+        let hash2 = city_hash32(data);
         assert_eq!(hash1, hash2, "Hash should be deterministic");
     }
 
@@ -395,7 +403,7 @@ mod tests {
         ];
         for len in 0..128 {
             let data: Vec<u8> = (0..len).map(|x| x as u8).collect();
-            let hash = city_hash32_impl(&data);
+            let hash = city_hash32(&data);
             let s = CONTROL[len].trim_start_matches("0x");
             assert_eq!(hash, u32::from_str_radix(s, 16).unwrap());
         }
