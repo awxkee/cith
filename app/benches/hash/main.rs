@@ -4,8 +4,8 @@
  * // Use of this source code is governed by a BSD-style
  * // license that can be found in the LICENSE file.
  */
-use cith::{city_hash128, city_hash256_crc, city_hash32, city_hash64, city_murmur};
-use criterion::{criterion_group, criterion_main, Criterion};
+use cith::{city_hash32, city_hash64, city_hash128, city_hash256_crc, city_murmur};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.benchmark_group("Hash");
@@ -44,7 +44,6 @@ The current version, completed April 3, 2011, is MurmurHash3,[12][13] which yiel
             _ = city_hash32(&v_short);
         })
     });
-
 
     c.bench_function("city64", |b| {
         b.iter(|| {
