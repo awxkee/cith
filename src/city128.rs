@@ -120,7 +120,7 @@ fn city_128_with_seed_impl(bytes: &[u8], seed: u128) -> u128 {
         std::mem::swap(&mut z, &mut x);
         moved_offset += 64;
         len -= 128;
-        if !(len >= 128) {
+        if len < 128 {
             break;
         }
     }

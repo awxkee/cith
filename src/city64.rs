@@ -77,7 +77,7 @@ pub(crate) fn hash64_len_0_to_16(bytes: &[u8]) -> u64 {
             read_le32(bytes, bytes.len() - 4) as u64,
             mul,
         )
-    } else if bytes.len() > 0 {
+    } else if !bytes.is_empty() {
         let a = bytes[0] as u32;
         let b = bytes[bytes.len() >> 1] as u32;
         let c = bytes[bytes.len() - 1] as u32;
