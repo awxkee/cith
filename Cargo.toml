@@ -5,5 +5,16 @@ members = ["app"]
 name = "cith"
 version = "0.1.0"
 edition = "2024"
+description = "CityHash hasher"
+keywords = ["hash", "cityhash"]
+license = "BSD-3-Clause OR Apache-2.0"
+authors = ["Radzivon Bartoshyk"]
+documentation = "https://github.com/awxkee/cith"
+categories = ["algorithms"]
+homepage = "https://github.com/awxkee/cith"
+repository = "https://github.com/awxkee/cith"
+exclude = ["*.jpg", "/assets", "*.png", "*.sh", "/assets/*"]
+include = ["/src/", "/README.md", "/LICENSE.md", "/LICENSE-APACHE.md"]
+rust-version = "1.87.0"
 
 [dependencies]
