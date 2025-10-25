@@ -30,7 +30,7 @@ use crate::city32::city_hash32;
 use crate::{city_hash64, city_hash64_with_seed};
 use std::hash::Hasher;
 
-/// A [`std::hash::Hasher`] implementation using the 32-bit variant of CityHash.
+/// A [`Hasher`] implementation using the 32-bit variant of CityHash.
 ///
 /// `City32Hasher` computes a fast, non-cryptographic 32-bit hash of input data
 /// using the [`city_hash32`] algorithm. It is optimized for short and medium-length
